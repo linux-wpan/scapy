@@ -1,6 +1,7 @@
 ## This file is for use with Scapy
 ## See http://www.secdev.org/projects/scapy for more information
 ## Copyright (C) Ryan Speers <ryan@rmspeers.com> 2011-2012
+## Copyright (C) Stefan Schmidt <stefan@datenfreihafen.org> 2016-2017
 ## 2012-03-10 Roger Meyer <roger.meyer@csus.edu>: Added frames
 ## This program is published under a GPLv2 license
 
@@ -15,6 +16,7 @@ from scapy.fields import *
 
 ### Fields ###
 class dot15d4AddressField(Field):
+    __slots__ = ["length_of", "adjust"]
     def __init__(self, name, default, length_of=None, fmt="<H", adjust=None):
         Field.__init__(self, name, default, fmt)
         self.length_of=length_of
@@ -56,17 +58,17 @@ class dot15d4AddressField(Field):
 class Dot15d4(Packet):
     name = "IEEE 802.15.4"
     fields_desc = [
-                    HiddenField(BitField("fcf_reserved_1", 0, 1), True), #fcf p1 b1
+                    BitField("fcf_reserved_1", 0, 1), #fcf p1 b1
                     BitEnumField("fcf_panidcompress", 0, 1, [False, True]),
                     BitEnumField("fcf_ackreq", 0, 1, [False, True]),
                     BitEnumField("fcf_pending", 0, 1, [False, True]),
                     BitEnumField("fcf_security", 0, 1, [False, True]), #fcf p1 b2
-                    Emph(BitEnumField("fcf_frametype", 0, 3, {0:"Beacon", 1:"Data", 2:"Ack", 3:"Command"})),
+                    BitEnumField("fcf_frametype", 0, 3, {0:"Beacon", 1:"Data", 2:"Ack", 3:"Command"}),
                     BitEnumField("fcf_srcaddrmode", 0, 2, {0:"None", 1:"Reserved", 2:"Short", 3:"Long"}),  #fcf p2 b1
                     BitField("fcf_framever", 0, 2), # 00 compatibility with 2003 version; 01 compatible with 2006 version
                     BitEnumField("fcf_destaddrmode", 2, 2, {0:"None", 1:"Reserved", 2:"Short", 3:"Long"}), #fcf p2 b2
-                    HiddenField(BitField("fcf_reserved_2", 0, 2), True),
-                    Emph(ByteField("seqnum", 1)) #sequence number
+                    BitField("fcf_reserved_2", 0, 2),
+                    ByteField("seqnum", 1) #sequence number
                     ]
 
     def mysummary(self):
@@ -127,7 +129,7 @@ class Dot15d4Ack(Packet):
 class Dot15d4AuxSecurityHeader(Packet):
     name = "IEEE 802.15.4 Auxiliary Security Header"
     fields_desc = [
-        HiddenField(BitField("sec_sc_reserved", 0, 3), True),
+        BitField("sec_sc_reserved", 0, 3),
         # Key Identifier Mode
         # 0: Key is determined implicitly from the originator and receipient(s) of the frame
         # 1: Key is determined explicitly from the the 1-octet Key Index subfield of the Key Identifier field
@@ -138,11 +140,11 @@ class Dot15d4AuxSecurityHeader(Packet):
         ),
         BitEnumField("sec_sc_seclevel", 0, 3, {0:"None", 1:"MIC-32", 2:"MIC-64", 3:"MIC-128",          \
                                                4:"ENC", 5:"ENC-MIC-32", 6:"ENC-MIC-64", 7:"ENC-MIC-128"}),
-        XLEIntField("sec_framecounter", 0x00000000), # 4 octets
+        LEIntField("sec_framecounter", 0x00000000), # 4 octets
         # Key Identifier (variable length): identifies the key that is used for cryptographic protection
         # Key Source : length of sec_keyid_keysource varies btwn 0, 4, and 8 bytes depending on sec_sc_keyidmode
         # 4 octets when sec_sc_keyidmode == 2
-        ConditionalField(XLEIntField("sec_keyid_keysource", 0x00000000),
+        ConditionalField(LEIntField("sec_keyid_keysource", 0x00000000),
             lambda pkt:pkt.getfieldval("sec_sc_keyidmode") == 2),
         # 8 octets when sec_sc_keyidmode == 3
         ConditionalField(LELongField("sec_keyid_keysource", 0x0000000000000000),
@@ -155,9 +157,9 @@ class Dot15d4AuxSecurityHeader(Packet):
 class Dot15d4Data(Packet):
     name = "IEEE 802.15.4 Data"
     fields_desc = [
-                    XLEShortField("dest_panid", 0xFFFF),
+                    LEShortField("dest_panid", 0xFFFF),
                     dot15d4AddressField("dest_addr", 0xFFFF, length_of="fcf_destaddrmode"),
-                    ConditionalField(XLEShortField("src_panid", 0x0), \
+                    ConditionalField(LEShortField("src_panid", 0x0), \
                                         lambda pkt:util_srcpanid_present(pkt)),
                     ConditionalField(dot15d4AddressField("src_addr", None, length_of="fcf_srcaddrmode"), \
                                         lambda pkt:pkt.underlayer.getfieldval("fcf_srcaddrmode") != 0),
@@ -171,7 +173,7 @@ class Dot15d4Data(Packet):
 class Dot15d4Beacon(Packet):
     name = "IEEE 802.15.4 Beacon"
     fields_desc = [
-                    XLEShortField("src_panid", 0x0),
+                    LEShortField("src_panid", 0x0),
                     dot15d4AddressField("src_addr", None, length_of="fcf_srcaddrmode"),
                     # Security field present if fcf_security == True
                     ConditionalField(PacketField("aux_sec_header", Dot15d4AuxSecurityHeader(), Dot15d4AuxSecurityHeader),
@@ -214,10 +216,10 @@ class Dot15d4Beacon(Packet):
 class Dot15d4Cmd(Packet):
     name = "IEEE 802.15.4 Command"
     fields_desc = [
-                    XLEShortField("dest_panid", 0xFFFF),
+                    LEShortField("dest_panid", 0xFFFF),
                     # Users should correctly set the dest_addr field. By default is 0x0 for construction to work.
                     dot15d4AddressField("dest_addr", 0x0, length_of="fcf_destaddrmode"),
-                    ConditionalField(XLEShortField("src_panid", 0x0), \
+                    ConditionalField(LEShortField("src_panid", 0x0), \
                                         lambda pkt:util_srcpanid_present(pkt)),
                     ConditionalField(dot15d4AddressField("src_addr", None, length_of="fcf_srcaddrmode"), \
                                         lambda pkt:pkt.underlayer.getfieldval("fcf_srcaddrmode") != 0),
@@ -255,13 +257,13 @@ class Dot15d4CmdCoordRealign(Packet):
     name = "IEEE 802.15.4 Coordinator Realign Command"
     fields_desc = [
         # PAN Identifier (2 octets)
-        XLEShortField("panid", 0xFFFF),
+        LEShortField("panid", 0xFFFF),
         # Coordinator Short Address (2 octets)
-        XLEShortField("coord_address", 0x0000),
+        LEShortField("coord_address", 0x0000),
         # Logical Channel (1 octet): the logical channel that the coordinator intends to use for all future communications
         ByteField("channel", 0),
         # Short Address (2 octets)
-        XLEShortField("dev_address", 0xFFFF),
+        LEShortField("dev_address", 0xFFFF),
         # Channel page (0/1 octet) TODO optional
         #ByteField("channel_page", 0),
     ]
@@ -308,7 +310,7 @@ class Dot15d4CmdAssocReq(Packet):
 class Dot15d4CmdAssocResp(Packet):
     name = "IEEE 802.15.4 Association Response Payload"
     fields_desc = [
-        XLEShortField("short_address", 0xFFFF), # Address assigned to device from coordinator (0xFFFF == none)
+        LEShortField("short_address", 0xFFFF), # Address assigned to device from coordinator (0xFFFF == none)
         # Association Status
         # 0x00 == successful
         # 0x01 == PAN at capacity
@@ -366,3 +368,5 @@ bind_layers( Dot15d4FCS, Dot15d4Cmd,  fcf_frametype=3)
 ### DLT Types ###
 conf.l2types.register(804, Dot15d4)
 conf.l2types.register(805, Dot15d4)
+#conf.l2types.register_num2layer(804, Dot15d4)
+#conf.l2types.register_num2layer(805, Dot15d4)
