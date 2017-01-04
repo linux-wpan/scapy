@@ -388,7 +388,7 @@ contribs: a dict which can be used by contrib layers to store local configuratio
     netcache = NetCache()
     geoip_city = '/usr/share/GeoIP/GeoIPCity.dat'
     geoip_city_ipv6 = '/usr/share/GeoIP/GeoIPCityv6.dat'
-    load_layers = ["l2", "inet", "dhcp", "dns", "dot11", "gprs", "tls",
+    load_layers = ["l2", "inet", "dhcp", "dns", "dot11", "dot15d4", "gprs", "tls",
                    "hsrp", "inet6", "ir", "isakmp", "l2tp", "mgcp",
                    "mobileip", "netbios", "netflow", "ntp", "ppp",
                    "radius", "rip", "rtp", "skinny", "smb", "snmp",
