@@ -63,8 +63,8 @@ class Dot15d4(Packet):
                     BitEnumField("fcf_ackreq", 0, 1, [False, True]),
                     BitEnumField("fcf_pending", 0, 1, [False, True]),
                     BitEnumField("fcf_security", 0, 1, [False, True]), #fcf p1 b2
-                    BitEnumField("fcf_frametype", 0, 3, {0:"Beacon", 1:"Data", 2:"Ack", 3:"Command"}),
-                    BitEnumField("fcf_srcaddrmode", 0, 2, {0:"None", 1:"Reserved", 2:"Short", 3:"Long"}),  #fcf p2 b1
+                    BitEnumField("fcf_frametype", 1, 3, {0:"Beacon", 1:"Data", 2:"Ack", 3:"Command"}),
+                    BitEnumField("fcf_srcaddrmode", 2, 2, {0:"None", 1:"Reserved", 2:"Short", 3:"Long"}),  #fcf p2 b1
                     BitField("fcf_framever", 0, 2), # 00 compatibility with 2003 version; 01 compatible with 2006 version
                     BitEnumField("fcf_destaddrmode", 2, 2, {0:"None", 1:"Reserved", 2:"Short", 3:"Long"}), #fcf p2 b2
                     BitField("fcf_reserved_2", 0, 2),
