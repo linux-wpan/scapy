@@ -249,8 +249,10 @@ class Dot15d4Cmd(Packet):
         if   self.cmd_id == 1: return Dot15d4CmdAssocReq
         elif self.cmd_id == 2: return Dot15d4CmdAssocResp
         elif self.cmd_id == 3: return Dot15d4CmdDisassociation
+        elif self.cmd_id == 4: return Dot15d4CmdDataRequest
         elif self.cmd_id == 5: return Dot15d4CmdPanIdConflict
         elif self.cmd_id == 6: return Dot15d4CmdOrphan
+        elif self.cmd_id == 7: return Dot15d4CmdBeaconRequest
         elif self.cmd_id == 8: return Dot15d4CmdCoordRealign
         elif self.cmd_id == 9: return Dot15d4CmdGTSReq
         else:                  return Packet.guess_payload_class(self, payload)
@@ -265,7 +267,7 @@ class Dot15d4CmdAssocReq(Packet):
         BitField("receiver_on_when_idle", 0, 1), # Receiver On When Idle
         BitField("power_source", 0, 1), # Power Source
         BitField("device_type", 0, 1), # Device Type
-        BitField("alternate_pan_coordinator", 0, 1), # Alternate PAN Coordinator
+        BitField("alternate_pan_coordinator", 0, 1), # Alternate PAN Coordinator, in 2011 this is defined as reserved??
     ]
     def mysummary(self):
         return self.sprintf("IEEE 802.15.4 Association Request Payload ( Alt PAN Coord: %Dot15d4CmdAssocReq.alternate_pan_coordinator% Device Type: %Dot15d4CmdAssocReq.device_type% )")
@@ -299,12 +301,20 @@ class Dot15d4CmdDisassociation(Packet):
     def mysummary(self):
         return self.sprintf("IEEE 802.15.4 Disassociation Notification Payload ( Disassociation Reason %Dot15d4CmdDisassociation.disassociation_reason% )")
 
+class Dot15d4CmdDataRequest(Packet):
+    name = "IEEE 802.15.4 Data Request command"
+    fields_desc = [ ]
+
 class Dot15d4CmdPanIdConflict(Packet):
     name = "IEEE 802.15.4 PAN ID conflict notification command"
     fields_desc = [ ]
 
 class Dot15d4CmdOrphan(Packet):
     name = "IEEE 802.15.4  Orphan notification command"
+    fields_desc = [ ]
+
+class Dot15d4CmdBeaconRequest(Packet):
+    name = "IEEE 802.15.4 Beacon Request command"
     fields_desc = [ ]
 
 class Dot15d4CmdCoordRealign(Packet):
@@ -374,10 +384,10 @@ bind_layers( Dot15d4FCS, Dot15d4Cmd,  fcf_frametype=3)
 bind_layers( Dot15d4Cmd, Dot15d4CmdAssocReq, cmd_id=0x1)
 bind_layers( Dot15d4Cmd, Dot15d4CmdAssocResp, cmd_id=0x2)
 bind_layers( Dot15d4Cmd, Dot15d4CmdDisassociation, cmd_id=0x3)
-#bind_layers( Dot15d4Cmd, Dot15d4CmdDisassociation, cmd_id=0x4)
+bind_layers( Dot15d4Cmd, Dot15d4CmdDataRequest, cmd_id=0x4)
 bind_layers( Dot15d4Cmd, Dot15d4CmdPanIdConflict, cmd_id=0x5)
 bind_layers( Dot15d4Cmd, Dot15d4CmdOrphan, cmd_id=0x6)
-#bind_layers( Dot15d4Cmd, Dot15d4CmdDisassociation, cmd_id=0x7)
+bind_layers( Dot15d4Cmd, Dot15d4CmdBeaconRequest, cmd_id=0x7)
 bind_layers( Dot15d4Cmd, Dot15d4CmdCoordRealign, cmd_id=0x8)
 bind_layers( Dot15d4Cmd, Dot15d4CmdGTSReq, cmd_id=0x9)
 
