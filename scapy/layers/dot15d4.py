@@ -122,10 +122,6 @@ class Dot15d4FCS(Dot15d4, Packet):
         else:
             return p + pay + makeFCS(p+pay) #construct the packet with the FCS at the end
 
-class Dot15d4Ack(Packet):
-    name = "IEEE 802.15.4 Ack"
-    fields_desc = [ ]
-
 class Dot15d4AuxSecurityHeader(Packet):
     name = "IEEE 802.15.4 Auxiliary Security Header"
     fields_desc = [
@@ -153,22 +149,6 @@ class Dot15d4AuxSecurityHeader(Packet):
         ConditionalField(XByteField("sec_keyid_keyindex", 0xFF),
             lambda pkt:pkt.getfieldval("sec_sc_keyidmode") != 0),
     ]
-
-class Dot15d4Data(Packet):
-    name = "IEEE 802.15.4 Data"
-    fields_desc = [
-                    LEShortField("dest_panid", 0xFFFF),
-                    dot15d4AddressField("dest_addr", 0xFFFF, length_of="fcf_destaddrmode"),
-                    ConditionalField(LEShortField("src_panid", 0x0), \
-                                        lambda pkt:util_srcpanid_present(pkt)),
-                    ConditionalField(dot15d4AddressField("src_addr", None, length_of="fcf_srcaddrmode"), \
-                                        lambda pkt:pkt.underlayer.getfieldval("fcf_srcaddrmode") != 0),
-                    # Security field present if fcf_security == True
-                    ConditionalField(PacketField("aux_sec_header", Dot15d4AuxSecurityHeader(), Dot15d4AuxSecurityHeader),
-                                        lambda pkt:pkt.underlayer.getfieldval("fcf_security") == True),
-                    ]
-    def mysummary(self):
-        return self.sprintf("IEEE 802.15.4 Data ( %Dot15d4Data.src_panid%:%Dot15d4Data.src_addr% -> %Dot15d4Data.dest_panid%:%Dot15d4Data.dest_addr% )")
 
 class Dot15d4Beacon(Packet):
     name = "IEEE 802.15.4 Beacon"
@@ -213,6 +193,26 @@ class Dot15d4Beacon(Packet):
     def mysummary(self):
         return self.sprintf("IEEE 802.15.4 Beacon ( %Dot15d4Beacon.src_panid%:%Dot15d4Beacon.src_addr% ) assocPermit(%Dot15d4Beacon.sf_assocpermit%) panCoord(%Dot15d4Beacon.sf_pancoord%)")
 
+class Dot15d4Data(Packet):
+    name = "IEEE 802.15.4 Data"
+    fields_desc = [
+                    LEShortField("dest_panid", 0xFFFF),
+                    dot15d4AddressField("dest_addr", 0xFFFF, length_of="fcf_destaddrmode"),
+                    ConditionalField(LEShortField("src_panid", 0x0), \
+                                        lambda pkt:util_srcpanid_present(pkt)),
+                    ConditionalField(dot15d4AddressField("src_addr", None, length_of="fcf_srcaddrmode"), \
+                                        lambda pkt:pkt.underlayer.getfieldval("fcf_srcaddrmode") != 0),
+                    # Security field present if fcf_security == True
+                    ConditionalField(PacketField("aux_sec_header", Dot15d4AuxSecurityHeader(), Dot15d4AuxSecurityHeader),
+                                        lambda pkt:pkt.underlayer.getfieldval("fcf_security") == True),
+                    ]
+    def mysummary(self):
+        return self.sprintf("IEEE 802.15.4 Data ( %Dot15d4Data.src_panid%:%Dot15d4Data.src_addr% -> %Dot15d4Data.dest_panid%:%Dot15d4Data.dest_addr% )")
+
+class Dot15d4Ack(Packet):
+    name = "IEEE 802.15.4 Ack"
+    fields_desc = [ ]
+
 class Dot15d4Cmd(Packet):
     name = "IEEE 802.15.4 Command"
     fields_desc = [
@@ -252,45 +252,6 @@ class Dot15d4Cmd(Packet):
         elif self.cmd_id == 8: return Dot15d4CmdCoordRealign
         elif self.cmd_id == 9: return Dot15d4CmdGTSReq
         else:                  return Packet.guess_payload_class(self, payload)
-
-class Dot15d4CmdCoordRealign(Packet):
-    name = "IEEE 802.15.4 Coordinator Realign Command"
-    fields_desc = [
-        # PAN Identifier (2 octets)
-        LEShortField("panid", 0xFFFF),
-        # Coordinator Short Address (2 octets)
-        LEShortField("coord_address", 0x0000),
-        # Logical Channel (1 octet): the logical channel that the coordinator intends to use for all future communications
-        ByteField("channel", 0),
-        # Short Address (2 octets)
-        LEShortField("dev_address", 0xFFFF),
-        # Channel page (0/1 octet) TODO optional
-        #ByteField("channel_page", 0),
-    ]
-    def mysummary(self):
-        return self.sprintf("802.15.4 Coordinator Realign Payload ( PAN ID: %Dot15dCmdCoordRealign.pan_id% : channel %Dot15d4CmdCoordRealign.channel% )")
-
-
-### Utility Functions ###
-def util_srcpanid_present(pkt):
-    '''A source PAN ID is included if and only if both src addr mode != 0 and PAN ID Compression in FCF == 0'''
-    if (pkt.underlayer.getfieldval("fcf_srcaddrmode") != 0) and (pkt.underlayer.getfieldval("fcf_panidcompress") == 0): return True
-    else: return False
-
-# Do a CRC-CCITT Kermit 16bit on the data given
-# Returns a CRC that is the FCS for the frame
-#  Implemented using pseudocode from: June 1986, Kermit Protocol Manual
-#  See also: http://regregex.bbcmicro.net/crc-catalogue.htm#crc.cat.kermit
-def makeFCS(data):
-    crc = 0
-    for i in range(0, len(data)):
-        c = ord(data[i])
-        q = (crc ^ c) & 15              #Do low-order 4 bits
-        crc = (crc // 16) ^ (q * 4225)
-        q = (crc ^ (c // 16)) & 15      #And high 4 bits
-        crc = (crc // 16) ^ (q * 4225)
-    return struct.pack('<H', crc) #return as bytes in little endian order
-
 
 class Dot15d4CmdAssocReq(Packet):
     name = "802.15.4 Association Request Payload"
@@ -336,6 +297,23 @@ class Dot15d4CmdDisassociation(Packet):
     def mysummary(self):
         return self.sprintf("IEEE 802.15.4 Disassociation Notification Payload ( Disassociation Reason %Dot15d4CmdDisassociation.disassociation_reason% )")
 
+class Dot15d4CmdCoordRealign(Packet):
+    name = "IEEE 802.15.4 Coordinator Realign Command"
+    fields_desc = [
+        # PAN Identifier (2 octets)
+        LEShortField("panid", 0xFFFF),
+        # Coordinator Short Address (2 octets)
+        LEShortField("coord_address", 0x0000),
+        # Logical Channel (1 octet): the logical channel that the coordinator intends to use for all future communications
+        ByteField("channel", 0),
+        # Short Address (2 octets)
+        LEShortField("dev_address", 0xFFFF),
+        # Channel page (0/1 octet) TODO optional
+        #ByteField("channel_page", 0),
+    ]
+    def mysummary(self):
+        return self.sprintf("802.15.4 Coordinator Realign Payload ( PAN ID: %Dot15dCmdCoordRealign.pan_id% : channel %Dot15d4CmdCoordRealign.channel% )")
+
 class Dot15d4CmdGTSReq(Packet):
     name = "IEEE 802.15.4 GTS request command"
     fields_desc = [
@@ -351,6 +329,28 @@ class Dot15d4CmdGTSReq(Packet):
     ]
     def mysummary(self):
         return self.sprintf("IEEE 802.15.4 GTS Request Command ( %Dot15d4CmdGTSReq.gts_len% : %Dot15d4CmdGTSReq.gts_dir% )")
+
+
+### Utility Functions ###
+def util_srcpanid_present(pkt):
+    '''A source PAN ID is included if and only if both src addr mode != 0 and PAN ID Compression in FCF == 0'''
+    if (pkt.underlayer.getfieldval("fcf_srcaddrmode") != 0) and (pkt.underlayer.getfieldval("fcf_panidcompress") == 0): return True
+    else: return False
+
+# Do a CRC-CCITT Kermit 16bit on the data given
+# Returns a CRC that is the FCS for the frame
+#  Implemented using pseudocode from: June 1986, Kermit Protocol Manual
+#  See also: http://regregex.bbcmicro.net/crc-catalogue.htm#crc.cat.kermit
+def makeFCS(data):
+    crc = 0
+    for i in range(0, len(data)):
+        c = ord(data[i])
+        q = (crc ^ c) & 15              #Do low-order 4 bits
+        crc = (crc // 16) ^ (q * 4225)
+        q = (crc ^ (c // 16)) & 15      #And high 4 bits
+        crc = (crc // 16) ^ (q * 4225)
+    return struct.pack('<H', crc) #return as bytes in little endian order
+
 
 # PAN ID conflict notification command frame is not necessary, only Dot15d4Cmd with cmd_id = 5 ("PANIDConflictNotify")
 # Orphan notification command not necessary, only Dot15d4Cmd with cmd_id = 6 ("OrphanNotify")
