@@ -365,6 +365,12 @@ bind_layers( Dot15d4FCS, Dot15d4Data, fcf_frametype=1)
 bind_layers( Dot15d4FCS, Dot15d4Ack,  fcf_frametype=2)
 bind_layers( Dot15d4FCS, Dot15d4Cmd,  fcf_frametype=3)
 
+bind_layers( Dot15d4Cmd, Dot15d4CmdAssocReq, cmd_id=0x1)
+bind_layers( Dot15d4Cmd, Dot15d4CmdAssocResp, cmd_id=0x1)
+bind_layers( Dot15d4Cmd, Dot15d4CmdDisassociation, cmd_id=0x3)
+bind_layers( Dot15d4Cmd, Dot15d4CmdCoordRealign, cmd_id=0x8)
+bind_layers( Dot15d4Cmd, Dot15d4CmdGTSReq, cmd_id=0x9)
+
 ### DLT Types ###
 conf.l2types.register(804, Dot15d4)
 conf.l2types.register(805, Dot15d4)
