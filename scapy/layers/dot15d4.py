@@ -328,8 +328,8 @@ class Dot15d4CmdCoordRealign(Packet):
         ByteField("channel", 0),
         # Short Address (2 octets)
         LEShortField("dev_address", 0xFFFF),
-        # Channel page (0/1 octet) TODO optional
-        #ByteField("channel_page", 0),
+        # Channel page (0/1 octet)
+        ConditionalField(ByteField("channel_page", 0), lambda pkt:pkt.underlayer.underlayer.getfieldval("fcf_framever") == 0x1),
     ]
     def mysummary(self):
         return self.sprintf("802.15.4 Coordinator Realign Payload ( PAN ID: %Dot15dCmdCoordRealign.pan_id% : channel %Dot15d4CmdCoordRealign.channel% )")
