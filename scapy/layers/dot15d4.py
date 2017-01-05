@@ -249,6 +249,8 @@ class Dot15d4Cmd(Packet):
         if   self.cmd_id == 1: return Dot15d4CmdAssocReq
         elif self.cmd_id == 2: return Dot15d4CmdAssocResp
         elif self.cmd_id == 3: return Dot15d4CmdDisassociation
+        elif self.cmd_id == 5: return Dot15d4CmdPanIdConflict
+        elif self.cmd_id == 6: return Dot15d4CmdOrphan
         elif self.cmd_id == 8: return Dot15d4CmdCoordRealign
         elif self.cmd_id == 9: return Dot15d4CmdGTSReq
         else:                  return Packet.guess_payload_class(self, payload)
@@ -296,6 +298,14 @@ class Dot15d4CmdDisassociation(Packet):
     ]
     def mysummary(self):
         return self.sprintf("IEEE 802.15.4 Disassociation Notification Payload ( Disassociation Reason %Dot15d4CmdDisassociation.disassociation_reason% )")
+
+class Dot15d4CmdPanIdConflict(Packet):
+    name = "IEEE 802.15.4 PAN ID conflict notification command"
+    fields_desc = [ ]
+
+class Dot15d4CmdOrphan(Packet):
+    name = "IEEE 802.15.4  Orphan notification command"
+    fields_desc = [ ]
 
 class Dot15d4CmdCoordRealign(Packet):
     name = "IEEE 802.15.4 Coordinator Realign Command"
@@ -351,10 +361,6 @@ def makeFCS(data):
         crc = (crc // 16) ^ (q * 4225)
     return struct.pack('<H', crc) #return as bytes in little endian order
 
-
-# PAN ID conflict notification command frame is not necessary, only Dot15d4Cmd with cmd_id = 5 ("PANIDConflictNotify")
-# Orphan notification command not necessary, only Dot15d4Cmd with cmd_id = 6 ("OrphanNotify")
-
 ### Bindings ###
 bind_layers( Dot15d4, Dot15d4Beacon, fcf_frametype=0)
 bind_layers( Dot15d4, Dot15d4Data, fcf_frametype=1)
@@ -366,8 +372,12 @@ bind_layers( Dot15d4FCS, Dot15d4Ack,  fcf_frametype=2)
 bind_layers( Dot15d4FCS, Dot15d4Cmd,  fcf_frametype=3)
 
 bind_layers( Dot15d4Cmd, Dot15d4CmdAssocReq, cmd_id=0x1)
-bind_layers( Dot15d4Cmd, Dot15d4CmdAssocResp, cmd_id=0x1)
+bind_layers( Dot15d4Cmd, Dot15d4CmdAssocResp, cmd_id=0x2)
 bind_layers( Dot15d4Cmd, Dot15d4CmdDisassociation, cmd_id=0x3)
+#bind_layers( Dot15d4Cmd, Dot15d4CmdDisassociation, cmd_id=0x4)
+bind_layers( Dot15d4Cmd, Dot15d4CmdPanIdConflict, cmd_id=0x5)
+bind_layers( Dot15d4Cmd, Dot15d4CmdOrphan, cmd_id=0x6)
+#bind_layers( Dot15d4Cmd, Dot15d4CmdDisassociation, cmd_id=0x7)
 bind_layers( Dot15d4Cmd, Dot15d4CmdCoordRealign, cmd_id=0x8)
 bind_layers( Dot15d4Cmd, Dot15d4CmdGTSReq, cmd_id=0x9)
 
