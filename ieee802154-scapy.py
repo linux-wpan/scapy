@@ -15,7 +15,7 @@ interface = 'monitor0'
 fcf = Dot15d4()
 data = Dot15d4Data(dest_panid=0xbeef, dest_addr=0x0005, src_panid=0xbeef, src_addr=0x0004)
 ack = Dot15d4Ack() # Really no args needed? Ack contains 53 zeros as paylaod. Needed to set len?
-beacon = Dot15d4Beacon(src_panid=0xbeef, src_addr=0x0004) #Src and dest address are mixed up
+beacon = Dot15d4Beacon(src_panid=0xbeef, src_addr=0x0004)
 cmd = Dot15d4Cmd(dest_panid=0xbeef, dest_addr=0x0005, src_panid=0xbeef, src_addr=0x0004)
 
 cmd_coord_realign = Dot15d4CmdCoordRealign()
