@@ -18,14 +18,15 @@ ack = Dot15d4Ack() # Really no args needed? Ack contains 53 zeros as paylaod. Ne
 beacon = Dot15d4Beacon(src_panid=0xbeef, src_addr=0x0004)
 cmd = Dot15d4Cmd(dest_panid=0xbeef, dest_addr=0x0005, src_panid=0xbeef, src_addr=0x0004)
 
-cmd_coord_realign = Dot15d4CmdCoordRealign()
 cmd_assoc_req = Dot15d4CmdAssocReq()
 cmd_assoc_resp = Dot15d4CmdAssocResp()
 cmd_disassoc = Dot15d4CmdDisassociation()
+cmd_data_req = Dot15d4CmdDataRequest()
 cmd_panid_conflict = Dot15d4CmdPanIdConflict()
 cmd_orphan = Dot15d4CmdOrphan()
+cmd_beacon_req = Dot15d4CmdBeaconRequest()
+cmd_coord_realign = Dot15d4CmdCoordRealign()
 cmd_gts_req = Dot15d4CmdGTSReq()
-
 
 frame_data = fcf/data/"foobar"
 frame_ack = fcf/ack
@@ -34,8 +35,10 @@ frame_beacon = fcf/beacon
 frame_cmd_assoc_req = fcf/cmd/cmd_assoc_req
 frame_cmd_assoc_resp = fcf/cmd/cmd_assoc_resp
 frame_cmd_disassoc = fcf/cmd/cmd_disassoc
+frame_cmd_data_req = fcf/cmd/cmd_data_req
 frame_cmd_panid_conflict = fcf/cmd/cmd_panid_conflict
 frame_cmd_orphan = fcf/cmd/cmd_orphan
+frame_cmd_beacon_req = fcf/cmd/cmd_beacon_req
 frame_cmd_coord_realign = fcf/cmd/cmd_coord_realign
 frame_cmd_gts_req = fcf/cmd/cmd_gts_req
 
@@ -60,11 +63,17 @@ sendp(frame_cmd_assoc_resp, iface=interface)
 frame_cmd_disassoc.show()
 sendp(frame_cmd_disassoc, iface=interface)
 
+frame_cmd_data_req.show()
+sendp(frame_cmd_data_req, iface=interface)
+
 frame_cmd_panid_conflict.show()
 sendp(frame_cmd_panid_conflict, iface=interface)
 
 frame_cmd_orphan.show()
 sendp(frame_cmd_orphan, iface=interface)
+
+frame_cmd_beacon_req.show()
+sendp(frame_cmd_beacon_req, iface=interface)
 
 frame_cmd_coord_realign.show()
 sendp(frame_cmd_coord_realign, iface=interface)
