@@ -1,0 +1,76 @@
+% IEEE 802.15.4 Linux WPAN testing
+* Various testing
+
+# Configuration
+interface = 'monitor0'
+
+# TODO
+# Test cases with extended addresses
+# Test case with compressed panid
+# Test case for sending a frame with AR enabled and checking for the ACK getting back
+
++ Test: Scapy Dot15d4 layer
+* Make sure the layer in Scapy actually works before we test anything else
+
+= Unit Test: frame creation
+* Create all available type of frames from the Dot15d4 Scapy layer
+from scapy.layers.dot15d4 import *
+# Configuration
+src_addr_short = 0x0004
+dst_addr_short = 0x0005
+src_panid = 0xbeef
+dst_panid= 0xbeef
+# Frames
+fcf = Dot15d4()
+data = Dot15d4Data(dest_panid=dst_panid, dest_addr=dst_addr_short, src_panid=src_panid, src_addr=src_addr_short)
+ack = Dot15d4Ack()
+beacon = Dot15d4Beacon(src_panid=src_panid, src_addr=src_addr_short)
+cmd = Dot15d4Cmd(dest_panid=dst_panid, dest_addr=dst_addr_short, src_panid=src_panid, src_addr=src_addr_short)
+cmd_assoc_req = Dot15d4CmdAssocReq()
+cmd_assoc_resp = Dot15d4CmdAssocResp()
+cmd_disassoc = Dot15d4CmdDisassociation()
+cmd_data_req = Dot15d4CmdDataRequest()
+cmd_panid_conflict = Dot15d4CmdPanIdConflict()
+cmd_orphan = Dot15d4CmdOrphan()
+cmd_beacon_req = Dot15d4CmdBeaconRequest()
+cmd_coord_realign = Dot15d4CmdCoordRealign()
+cmd_gts_req = Dot15d4CmdGTSReq()
+frame_data = fcf/data/"foobar"
+str(frame_data) == '\x01\x88\x01\xef\xbe\x05\x00\xef\xbe\x04\x00foobar'
+frame_ack = fcf/ack
+str(frame_ack) == '\x02\x00\x01'
+frame_beacon = fcf/beacon
+str(frame_beacon) == '\x00\x80\x01\xef\xbe\x04\x00\xff\x0f\x80\x00'
+frame_cmd_assoc_req = fcf/cmd/cmd_assoc_req
+str(frame_cmd_assoc_req) == '\x03\x88\x01\xef\xbe\x05\x00\xef\xbe\x04\x00\x01\x00'
+frame_cmd_assoc_resp = fcf/cmd/cmd_assoc_resp
+str(frame_cmd_assoc_resp) == '\x03\x88\x01\xef\xbe\x05\x00\xef\xbe\x04\x00\x02\xff\xff\x00'
+frame_cmd_disassoc = fcf/cmd/cmd_disassoc
+str(frame_cmd_disassoc) == '\x03\x88\x01\xef\xbe\x05\x00\xef\xbe\x04\x00\x03\x02'
+frame_cmd_data_req = fcf/cmd/cmd_data_req
+str(frame_cmd_data_req) == '\x03\x88\x01\xef\xbe\x05\x00\xef\xbe\x04\x00\x04'
+frame_cmd_panid_conflict = fcf/cmd/cmd_panid_conflict
+str(frame_cmd_panid_conflict) == '\x03\x88\x01\xef\xbe\x05\x00\xef\xbe\x04\x00\x05'
+frame_cmd_orphan = fcf/cmd/cmd_orphan
+str(frame_cmd_orphan) == '\x03\x88\x01\xef\xbe\x05\x00\xef\xbe\x04\x00\x06'
+frame_cmd_beacon_req = fcf/cmd/cmd_beacon_req
+str(frame_cmd_beacon_req) == '\x03\x88\x01\xef\xbe\x05\x00\xef\xbe\x04\x00\x07'
+frame_cmd_coord_realign = fcf/cmd/cmd_coord_realign
+str(frame_cmd_coord_realign) == '\x03\x88\x01\xef\xbe\x05\x00\xef\xbe\x04\x00\x08\xff\xff\x00\x00\x00\xff\xff'
+frame_cmd_gts_req = fcf/cmd/cmd_gts_req
+str(frame_cmd_gts_req) == '\x03\x88\x01\xef\xbe\x05\x00\xef\xbe\x04\x00\t\x00'
+
+
+
+#sendp(frame_data, iface=interface)
+#sendp(frame_ack, iface=interface)
+#sendp(frame_beacon, iface=interface)
+#sendp(frame_cmd_assoc_req, iface=interface)
+#sendp(frame_cmd_assoc_resp, iface=interface)
+#sendp(frame_cmd_disassoc, iface=interface)
+#sendp(frame_cmd_data_req, iface=interface)
+#sendp(frame_cmd_panid_conflict, iface=interface)
+#sendp(frame_cmd_orphan, iface=interface)
+#sendp(frame_cmd_beacon_req, iface=interface)
+#sendp(frame_cmd_coord_realign, iface=interface)
+#sendp(frame_cmd_gts_req, iface=interface)
