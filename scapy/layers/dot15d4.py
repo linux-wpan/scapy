@@ -1,8 +1,8 @@
 ## This file is for use with Scapy
 ## See http://www.secdev.org/projects/scapy for more information
 ## Copyright (C) Ryan Speers <ryan@rmspeers.com> 2011-2012
-## Copyright (C) Stefan Schmidt <stefan@datenfreihafen.org> 2016-2017
 ## 2012-03-10 Roger Meyer <roger.meyer@csus.edu>: Added frames
+## Copyright (C) Stefan Schmidt <stefan@datenfreihafen.org> 2016-2017
 ## This program is published under a GPLv2 license
 
 """
